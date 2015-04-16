@@ -1,11 +1,5 @@
----
-title: 'Reproducible Research: Peer Assessment 1'
-author: "Pasi Hyytiäinen"
-output:
-  html_document:
-    keep_md: yes
-  pdf_document: default
----
+# Reproducible Research: Peer Assessment 1
+Pasi Hyytiäinen  
 
 
 ## Introduction
@@ -43,7 +37,8 @@ dataset.
      
 ## Loading and preprocessing the data
   
-```{r}
+
+```r
 # download the data if needed
 datafile="activity.zip"
 if(!file.exists(datafile)){
@@ -57,17 +52,14 @@ activities <- read.csv("activity.csv")
 
 # try to convert date column data to date class values
 activities$date<-as.Date(activities$date, format = "%Y-%m-%d")
-
-
-
-
 ```
 
      
 ## What is mean total number of steps taken per day?
 
 The histogram of the steps by day (NA values are ingnored).
-```{r}
+
+```r
 library(plyr)
 
 activitiesCleaned <- activities[which(activities$steps != "NA"), ]
@@ -79,17 +71,29 @@ names(totalStepsByDay) <- c("date", "total_steps")
 
 hist(totalStepsByDay$total_steps, main="Number of Steps", 
      xlab="Total number of steps taken each day", col="light blue")
-
-
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
+
 Mean and median for total number of steps taken per day:
-```{r}
+
+```r
 noNAMean<-mean(totalStepsByDay$total_steps)
 noNAMedian<-median(totalStepsByDay$total_steps)
 
 paste("Mean  =",round(noNAMean,2),"steps by day")
+```
+
+```
+## [1] "Mean  = 10766.19 steps by day"
+```
+
+```r
 paste("Median =",round(noNAMedian,2),"steps by day")
+```
+
+```
+## [1] "Median = 10765 steps by day"
 ```
 
 
@@ -97,7 +101,8 @@ paste("Median =",round(noNAMedian,2),"steps by day")
 ## What is the average daily activity pattern?
 
 Here is the time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days
-```{r}
+
+```r
 stepsInterval <- ddply(activitiesCleaned, .(interval), summarise, steps=mean(steps))
 
 #stepsInterval <- aggregate(steps ~ interval, data=activities, FUN=mean)
@@ -110,63 +115,93 @@ plot(stepsInterval$interval,
      main="The average daily activity")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-```{r}
+
+```r
 maxIndex<-which.max(stepsInterval$steps)
 val<-stepsInterval[maxIndex,]
 paste("The interval",val$interval[1],"has the maximum average of steps",round(val$steps[1],0))
+```
 
+```
+## [1] "The interval 835 has the maximum average of steps 206"
 ```
 
      
 ## Imputing missing values
 
 
-```{r}
+
+```r
 missingValues <- sum(is.na(activities))
 ```
 
-Total number of missing values in the dataset (i.e. the total number of rows with `NA`s) : `r missingValues`
+Total number of missing values in the dataset (i.e. the total number of rows with `NA`s) : 2304
 
 As there are a number of days/intervals where there are missing values (coded as `NA`), the presence of missing days may introduce bias into some calculations or summaries of the data.
 
 **Note!** Here I will assume that the activities usually follow a daily pattern.
 So `NA's` are replaced with the mean value at the same interval across days.
 
-```{r}
+
+```r
 dataMerge<-merge(activities,stepsInterval,by.x="interval",by.y="interval")
 nas <- is.na(dataMerge$steps.x)
 dataMerge$steps.x[nas] <- dataMerge$steps.y[nas]
 dataMerge <- dataMerge[,c(1:3)]
-
 ```
 
 The histogram of the steps by day when NA values are replaced with the mean value at the same interval across days.
-```{r}
+
+```r
 dataMerge2 <- aggregate(steps.x ~ date, data = dataMerge, FUN=sum, na.rm=TRUE)
 names(dataMerge2) <- c("date", "total_steps")
 
 hist(dataMerge2$total_steps, main="Number of Steps", 
      xlab="Total number of steps taken each day", col="light blue")
-
-
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
+
 Mean and median for total number of steps taken per day:
-```{r}
+
+```r
 replacedNAMean<-mean(dataMerge2$total_steps)
 replacedNAMedian<-median(dataMerge2$total_steps)
 
 paste("The new mean is",round(replacedNAMean,2),"steps by day")
-paste("The new median is",round(replacedNAMedian,2),"steps by day")
+```
 
+```
+## [1] "The new mean is 10766.19 steps by day"
+```
+
+```r
+paste("The new median is",round(replacedNAMedian,2),"steps by day")
+```
+
+```
+## [1] "The new median is 10766.19 steps by day"
 ```
 
 The difference between the new and old mean/median are:
-```{r}
-paste("Mean Old - Mean New =",round(noNAMean-replacedNAMean,2))
-paste("Median Old - Median New =",round(noNAMedian-replacedNAMedian,2))
 
+```r
+paste("Mean Old - Mean New =",round(noNAMean-replacedNAMean,2))
+```
+
+```
+## [1] "Mean Old - Mean New = 0"
+```
+
+```r
+paste("Median Old - Median New =",round(noNAMedian-replacedNAMedian,2))
+```
+
+```
+## [1] "Median Old - Median New = -1.19"
 ```
 
 Mean values didn't change as expected as the  total averge were not changed.
@@ -176,22 +211,28 @@ Median value changed as expected.
 ## Are there differences in activity patterns between weekdays and weekends?
 
 Add a new column to the dataset,  with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day. 
-```{r}
+
+```r
 ## if you are not running in "English", you need to change the LC_TIME to correct value
 Sys.setlocale("LC_TIME", "English")
+```
 
+```
+## [1] "English_United States.1252"
+```
+
+```r
 ## note POXIXlt wday
 ## 0–6 day of the week, starting on Sunday
 dataMerge$day=ifelse(as.POSIXlt(as.Date(dataMerge$date))$wday %%6==0,
                           "weekend","weekday")
-
-
 ```
 
 
 Here's a time series plot of the 5-minute interval and the average number of steps taken, averaged across all weekday days or weekend days.
 
-```{r}
+
+```r
 dataMerge3 <- ddply(dataMerge, .(interval, day), summarise, steps=mean(steps.x))
 
 
@@ -204,6 +245,8 @@ xyplot(steps~interval|day,
        xlab = "Date",
        main = "Average Number of Steps (weekends ws weekdays)")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
 
 It can be seen that activity on the weekends looks like to be more spread out over the day compared to the weekdays. Maybe because activities on weekdays follow a work related routine, whereas weekends could be more random. 
 
